@@ -1,43 +1,66 @@
-const postsContainer = document.getElementById('posts');
+const channel = "thesis-untitled"; // Updated channel slug
 
-// Replace with your Arena channel handle
-const channelId = 'moe-ebii/thesis-untitled';
+// Fetch content from the Are.na channel
+fetch(`https://api.are.na/v2/channels/${channel}/contents`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("API Response:", data); // Debugging
+        const posts = data.contents.reverse(); // Show newest first
 
-// Fetch blocks from Arena
-async function fetchArenaBlocks() {
-  try {
-    const response = await fetch(`https://api.are.na/v2/channels/${channelId}/blocks`);
-    const data = await response.json();
+        const contentContainer = document.getElementById("posts");
 
-    // Sort blocks reverse chronological
-    const sortedBlocks = data.data.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        if (posts.length === 0) {
+            contentContainer.innerHTML = "<p>No posts found in this channel.</p>";
+            return;
+        }
 
-    sortedBlocks.forEach(block => {
-      const postElement = document.createElement('div');
-      postElement.classList.add('post');
+        posts.forEach(post => {
+            const postBox = document.createElement("div");
+            postBox.classList.add("post");
 
-      const title = block.title || 'Untitled';
-      const content = block.content || block.embed?.html || 'No content provided';
-      const author = block.user?.name || 'Anonymous';
-      const date = new Date(block.created_at).toLocaleDateString();
+            // Text blocks
+            if (post.class === "Text" && post.content) {
+                const textElement = document.createElement("p");
+                textElement.textContent = post.content;
+                postBox.appendChild(textElement);
+            }
 
-      postElement.innerHTML = `
-        <h2>${title}</h2>
-        <p>${content}</p>
-        <footer>
-          <span>${author}</span>
-          <span>${date}</span>
-        </footer>
-      `;
+            // Image blocks
+            if (post.image && post.image.original && post.image.original.url) {
+                const imgElement = document.createElement("img");
+                imgElement.src = post.image.original.url;
+                imgElement.alt = post.title || "Arena image";
+                postBox.appendChild(imgElement);
+            }
 
-      postsContainer.appendChild(postElement);
+            // Link blocks
+            if (post.class === "Link" && post.source && post.source.url) {
+                const linkElement = document.createElement("a");
+                linkElement.href = post.source.url;
+                linkElement.textContent = post.title || post.source.url;
+                linkElement.target = "_blank";
+                linkElement.rel = "noopener noreferrer";
+                postBox.appendChild(linkElement);
+            }
+
+            // Posted by
+            const usernameElement = document.createElement("p");
+            usernameElement.classList.add("posted-by");
+            const author = post.connected_user?.username || post.user?.username || "Unknown User";
+            usernameElement.textContent = `Posted by: ${author}`;
+            usernameElement.style.fontSize = "0.8rem";
+            usernameElement.style.color = "#555";
+            postBox.appendChild(usernameElement);
+
+            contentContainer.appendChild(postBox);
+        });
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        document.getElementById("posts").innerHTML = `<p>Unable to load posts: ${error.message}</p>`;
     });
-
-  } catch (err) {
-    console.error('Error fetching Arena blocks:', err);
-    postsContainer.innerHTML = '<p>Unable to load posts at this time.</p>';
-  }
-}
-
-// Initialize
-fetchArenaBlocks();

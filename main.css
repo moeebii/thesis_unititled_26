@@ -17,54 +17,62 @@
 
 body {
     font-family: 'TimesDot', serif;
-    background-color: #ffffff; /* white background */
-    color: #000000; /* black text */
+    background-color: #ffffff;
+    color: #000000;
     padding: 20px;
-    text-align: left; /* left-aligned text */
+    text-align: left;
 }
 
-/* Header and main container */
 header {
     margin-bottom: 20px;
 }
 
 h1, p {
-    font-weight: normal; /* no bold */
-    font-size: 1rem; /* all text same size */
+    font-weight: normal;
+    font-size: 1rem;
     line-height: 1.5;
-    text-align: left; /* left align */
+    text-align: left;
 }
 
-/* Posts container */
+/* Posts grid */
 .posts-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+
+    /* Align left with header */
+    margin-left: 0px; /* same as body padding */
+    margin-right: 0;   /* optional */
 }
 
 /* Individual post styling */
 .post {
-    background-color: #ffffff; /* white background */
-    border: 1px solid #ddd; /* subtle border */
-    border-radius: 0; /* remove rounded corners */
+    background-color: #ffffff;
+    border: 1px solid #ddd;
     padding: 15px;
-    box-shadow: none; /* no shadows */
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
 }
 
-.post h2, .post p, .post footer {
-    font-family: 'TimesDot', serif;
+.post p,
+.post a {
     font-weight: normal;
-    font-size: 1rem; /* uniform size */
-    color: #000000;
+    font-size: 1rem;
     text-align: left;
+    color: #000000;
+    margin-bottom: 10px;
 }
 
-.post footer {
-    display: flex;
-    justify-content: space-between;
+.post img {
+    max-width: 100%;
+    margin-bottom: 10px;
+}
+
+.post a {
+    text-decoration: none;
+}
+
+.post .posted-by {
+    font-size: 0.8rem;
+    color: #555;
 }
