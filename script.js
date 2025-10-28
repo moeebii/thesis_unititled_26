@@ -53,7 +53,7 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
             usernameElement.classList.add("posted-by");
             const author = post.connected_user?.username || post.user?.username || "Unknown User";
             usernameElement.textContent = `Posted by: ${author}`;
-            usernameElement.style.fontSize = "0.8rem";
+            usernameElement.style.fontSize = "0.75rem";
             usernameElement.style.color = "#555";
             postBox.appendChild(usernameElement);
 

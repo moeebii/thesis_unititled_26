@@ -29,16 +29,16 @@ header {
 
 h1, p {
     font-weight: normal;
-    font-size: 1rem;
-    line-height: 1.5;
+    font-size: 0.75rem;
+    line-height: 1;
     text-align: left;
 }
 
 /* Posts grid */
 .posts-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
 
     /* Align left with header */
     margin-left: 0px; /* same as body padding */
@@ -57,7 +57,8 @@ h1, p {
 .post p,
 .post a {
     font-weight: normal;
-    font-size: 1rem;
+    font-size: 0.75rem;
+    line-height: 1;
     text-align: left;
     color: #000000;
     margin-bottom: 10px;
@@ -73,6 +74,7 @@ h1, p {
 }
 
 .post .posted-by {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    line-height: 1;
     color: #555;
 }
