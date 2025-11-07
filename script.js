@@ -2,7 +2,6 @@ const channel = "thesis-untitled";
 const container = document.getElementById("posts");
 const headerElement = document.querySelector("header");
 
-// --- Fetch posts ---
 fetch(`https://api.are.na/v2/channels/${channel}/contents`)
   .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
   .then(data => {
@@ -12,7 +11,6 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
       return;
     }
 
-    // --- Append posts ---
     posts.forEach(post => {
       const postBox = document.createElement("div");
       postBox.classList.add("post");
@@ -21,6 +19,7 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
       if (post.class === "Text" && post.content) {
         const p = document.createElement("p");
         p.textContent = post.content;
+        p.dataset.orig = post.content;
         postBox.appendChild(p);
       }
 
@@ -51,14 +50,11 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
       if (post.class === "Attachment" && post.attachment?.content_type.startsWith("audio")) {
         const audioContainer = document.createElement("div");
         audioContainer.classList.add("custom-audio");
-
         const audio = document.createElement("audio");
         audio.src = post.attachment.url;
-
         const playButton = document.createElement("div");
         playButton.classList.add("audio-button");
         playButton.textContent = "▶";
-
         const progressWrapper = document.createElement("div");
         progressWrapper.classList.add("audio-progress");
         const progressBar = document.createElement("div");
@@ -69,7 +65,6 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
           if (audio.paused) { audio.play(); playButton.textContent = "■"; }
           else { audio.pause(); playButton.textContent = "▶"; }
         });
-
         audio.addEventListener("timeupdate", () => {
           progressBar.style.width = `${(audio.currentTime/audio.duration)*100}%`;
         });
@@ -120,7 +115,7 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
         hour: "numeric", minute: "2-digit"
       }) : "Unknown date";
       meta.innerHTML = `${user}<br>${time}`;
-      meta.style.fontSize = "0.75rem"; meta.style.color = "#555";
+      meta.style.fontSize = "0.75rem"; meta.style.color = "#444";
       postBox.appendChild(meta);
 
       container.appendChild(postBox);
@@ -141,8 +136,8 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
         post.style.width = colWidth + "px";
         const minCol = colHeights.indexOf(Math.min(...colHeights));
         post.style.transform = `translate(${(colWidth+gap)*minCol}px, ${colHeights[minCol]}px)`;
-        post.dataset.originalX = (colWidth+gap)*minCol;
-        post.dataset.originalY = colHeights[minCol];
+        post.dataset.origX = (colWidth+gap)*minCol;
+        post.dataset.origY = colHeights[minCol];
         colHeights[minCol] += post.offsetHeight + gap;
       });
       container.style.height = Math.max(...colHeights) + "px";
@@ -153,107 +148,82 @@ fetch(`https://api.are.na/v2/channels/${channel}/contents`)
 
     const allElements = document.querySelectorAll(".post, .post p, .post a, header");
 
-    // --- Stage 1: Initial 10s normal, then slow natural color fade ---
+    // --- Stage 1: First 10s normal ---
     setTimeout(() => {
       let hue = 0;
+      let sat = 50;
+      let light = 90;
+
       const stage1 = setInterval(() => {
-        hue = (hue + 0.02) % 360;
-        document.body.style.backgroundColor = `hsl(${hue},50%,95%)`;
-        headerElement.style.color = `hsl(${(hue+180)%360},20%,10%)`;
-        allElements.forEach(el => el.style.color = `hsl(${(hue+180)%360},20%,10%)`);
-        document.querySelectorAll('.post img').forEach(img => {
-          img.style.filter = `invert(1) hue-rotate(${hue}deg)`;
-        });
+        hue = (hue + 0.2) % 360;
+        document.body.style.background = `linear-gradient(120deg,
+          hsl(${hue},${sat}%,${light}%),
+          hsl(${(hue+90)%360},${sat+20}%,${light-20}%))`;
       }, 100);
-      setTimeout(() => clearInterval(stage1), 30000);
-    }, 10000);
 
-    // --- Stage 2: Sharp metallic text ---
-    setTimeout(() => {
-      allElements.forEach(el => {
-        if (!el.classList.contains('sharp-text-metal')) el.classList.add('sharp-text-metal');
-        const text = el.textContent;
-        el.textContent = '';
-        text.split('').forEach((char, idx) => {
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.dataset.orig = char; // store original char
-          el.appendChild(span);
-        });
-      });
-    }, 30000);
+      // --- Stage 2: Trippy, vivid evolution ---
+      setTimeout(() => {
+        let frame = 0;
+        const stage2 = setInterval(() => {
+          frame++;
 
-    // --- Stage 3: Experimental chaos / flicker / kinetic ---
-    setTimeout(() => {
-      let frameCount = 0;
-      const mouse = {x: window.innerWidth/2, y: window.innerHeight/2};
+          // Bold, vibrant, moving background
+          const hue1 = (frame * 2) % 360;
+          const hue2 = (frame * 3 + 120) % 360;
+          document.body.style.background = `
+            linear-gradient(${frame % 360}deg,
+              hsl(${hue1},100%,45%),
+              hsl(${hue2},90%,50%),
+              hsl(${(hue1+180)%360},80%,40%)
+            )`;
 
-      window.addEventListener('mousemove', e => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-      });
-
-      setInterval(() => {
-        frameCount++;
-
-        // Borders & shadows
-        container.querySelectorAll(".post").forEach(post => {
-          const styles = ['solid','dashed','dotted','double','groove','ridge'];
-          const width = Math.floor(Math.random()*4+1);
-          const color = `hsl(${Math.random()*360},80%,50%)`;
-          post.style.border = `${width}px ${styles[Math.floor(Math.random()*styles.length)]} ${color}`;
-          post.style.boxShadow = `${Math.floor(Math.random()*20-10)}px ${Math.floor(Math.random()*20-10)}px ${Math.floor(Math.random()*30)}px ${color}`;
-        });
-
-        // Background flicker
-        const hue = Math.random()*360;
-        document.body.style.backgroundColor = `hsl(${hue},60%,15%)`;
-
-        // Pixelation / filter
-        document.body.style.filter = `contrast(${1 + Math.random()}) saturate(${1 + Math.random()}) blur(${Math.random()*2}px)`;
-
-        // --- Kinetic movement after 3 min ---
-        if(frameCount > 2500){
+          // Keep posts visible — add subtle glowing outlines
           container.querySelectorAll(".post").forEach(post => {
-            let dx = (Math.random()-0.5)*10 + (mouse.x - (parseFloat(post.dataset.originalX)||0))/200;
-            let dy = (Math.random()-0.5)*10 + (mouse.y - (parseFloat(post.dataset.originalY)||0))/200;
-            post.style.transform = `translate(${(parseFloat(post.dataset.originalX)||0)+dx}px, ${(parseFloat(post.dataset.originalY)||0)+dy}px) rotate(${Math.random()*10-5}deg)`;
+            const styles = ['solid','dashed','double','ridge'];
+            const borderColor = `hsl(${Math.random()*360},100%,60%)`;
+            post.style.border = `2px ${styles[Math.floor(Math.random()*styles.length)]} ${borderColor}`;
+            post.style.boxShadow = `0 0 20px ${borderColor}`;
+            post.style.backgroundColor = "rgba(255,255,255,0.9)";
+            post.style.filter = `contrast(1.2) brightness(1.1)`;
           });
-        }
 
-        // After 5 min, extreme chaos
-        if(frameCount > 5000){
-          container.querySelectorAll(".post, .post p, .post a").forEach(el => {
-            el.style.transform += ` rotate(${Math.random()*30-15}deg) scale(${1+Math.random()})`;
-            el.style.textShadow = `${Math.random()*15-7}px ${Math.random()*15-7}px 3px hsl(${Math.random()*360},100%,50%)`;
+          // Images stay crisp
+          document.querySelectorAll('.post img').forEach(img => {
+            img.style.filter = `hue-rotate(${frame}deg) saturate(1.5)`;
           });
-        }
 
-      }, 70);
+          // Word-by-word hover glitch
+          allElements.forEach(el => {
+            if (el.matches('p,a')) {
+              const words = el.dataset.orig ? el.dataset.orig.split(' ') : [];
+              if (el.matches(':hover')) {
+                const newWords = words.map(word => {
+                  if (Math.random() < 0.3) {
+                    return word.split('').map(() => 
+                      String.fromCharCode(33 + Math.floor(Math.random() * 94))
+                    ).join('');
+                  } else return word;
+                });
+                el.textContent = newWords.join(' ');
+              } else if (el.dataset.orig) {
+                el.textContent = el.dataset.orig;
+              }
+            }
+          });
 
-    }, 40000);
+          // Gradual motion later on
+          if (frame > 3000) {
+            container.querySelectorAll(".post").forEach(post => {
+              const dx = Math.sin((frame + parseFloat(post.dataset.origX || 0)) / 50) * 5;
+              const dy = Math.cos((frame + parseFloat(post.dataset.origY || 0)) / 40) * 5;
+              post.style.transform = `translate(${parseFloat(post.dataset.origX)+dx}px, ${parseFloat(post.dataset.origY)+dy}px) rotate(${Math.sin(frame/100)*2}deg)`;
+            });
+          }
 
-    // --- Hover: gradual random char morph ---
-    allElements.forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        const spans = Array.from(el.querySelectorAll('span'));
-        spans.forEach((span, idx) => {
-          const interval = setInterval(() => {
-            span.textContent = String.fromCharCode(33 + Math.floor(Math.random()*94));
-          }, 30 + Math.random()*50);
-          span.dataset.randInterval = interval;
-        });
-      });
+        }, 70);
+      }, 30000);
 
-      el.addEventListener('mouseleave', () => {
-        const spans = Array.from(el.querySelectorAll('span'));
-        spans.forEach(span => {
-          clearInterval(span.dataset.randInterval);
-          span.textContent = span.dataset.orig;
-        });
-      });
-    });
-
+    }, 10000);
   })
   .catch(err => { 
     container.innerHTML = `<p>Unable to load posts: ${err}</p>`; 
